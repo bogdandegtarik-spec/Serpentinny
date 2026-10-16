@@ -249,30 +249,59 @@
     </div>
 
     <script>
-        function selectServer(element, target) {
-            document.querySelectorAll('.server-option').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
+    async function selectServer(element, target) {
+        document.querySelectorAll('.server-option').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        
+        const consoleBox = document.getElementById('logConsole');
+        
+        try {
+            // Отправляем реальный запрос на локальный сервер в Termux
+            let response = await fetch(`http://127.0.0.1:8080/?node=${target}`);
+            let data = await response.json();
             
-            const consoleBox = document.getElementById('logConsole');
             const entry = document.createElement('div');
             entry.className = 'log-entry success';
-            entry.innerText = `[RULE] Задан целевой узел: ${target}. Перестройка таблицы маршрутов...`;
+            entry.innerText = `[RULE] ${data.message}`;
             consoleBox.appendChild(entry);
-            consoleBox.scrollTop = consoleBox.scrollHeight;
-        }
-
-        function launchGame() {
-            const consoleBox = document.getElementById('logConsole');
+        } catch (error) {
             const entry = document.createElement('div');
             entry.className = 'log-entry';
-            entry.innerText = `[LAUNCH] Отправка Intent команды в Mobile Legends...`;
+            entry.style.color = '#ff4444';
+            entry.innerText = `[ERROR] Нет связи с локальным сервером Termux!`;
             consoleBox.appendChild(entry);
-
-            // Запуск Mobile Legends через Android Intent / Deep Link
-            setTimeout(() => {
-                window.location.href = "intent://#Intent;package=com.mobile.legends;scheme=mobilelegends;end;";
-            }, 500);
         }
-    </script>
+        
+        consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    async function launchGame() {
+        const consoleBox = document.getElementById('logConsole');
+        
+        try {
+            let response = await fetch(`http://127.0.0.1:8080/?node=launch_mlbb`);
+            let data = await response.json();
+            
+            const entry = document.createElement('div');
+            entry.className = 'log-entry success';
+            entry.innerText = `[LAUNCH] Запрос отправлен. Открытие Mobile Legends...`;
+            consoleBox.appendChild(entry);
+        } catch (error) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = '#ff4444';
+            entry.innerText = `[ERROR] Сервер Termux не отвечает!`;
+            consoleBox.appendChild(entry);
+        }
+
+        consoleBox.scrollTop = consoleBox.scrollHeight;
+
+        // Запуск Mobile Legends через Android Intent / Deep Link
+        setTimeout(() => {
+            window.location.href = "intent://#Intent;package=com.mobile.legends;scheme=mobilelegends;end;";
+        }, 500);
+    }
+</script>
+
 </body>
 </html>
